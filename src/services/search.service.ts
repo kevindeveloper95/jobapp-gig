@@ -1,6 +1,31 @@
 import { SearchResponse } from '@elastic/elasticsearch/lib/api/types';
 import { elasticSearchClient } from '@gig/elasticsearch';
-import { IHitsTotal, IPaginateProps,ISearchResult } from '@kevindeveloper95/jobapp-shared';
+import { IHitsTotal, IPaginateProps, ISearchResult } from '@kevindeveloper95/jobapp-shared';
+
+// Define types for Elasticsearch query objects
+interface QueryStringQuery {
+  query_string: {
+    fields: string[];
+    query: string;
+  };
+}
+
+interface TermQuery {
+  term: {
+    [key: string]: boolean | string | number;
+  };
+}
+
+interface RangeQuery {
+  range: {
+    [key: string]: {
+      gte?: number;
+      lte?: number;
+    };
+  };
+}
+
+type ElasticsearchQuery = QueryStringQuery | TermQuery | RangeQuery;
 
 /**
  * @description Busca gigs (servicios) en Elasticsearch que pertenecen a un vendedor específico.
@@ -9,7 +34,7 @@ import { IHitsTotal, IPaginateProps,ISearchResult } from '@kevindeveloper95/joba
  * @returns {Promise<ISearchResult>} - Una promesa que resuelve a un objeto con el total de resultados y los hits de la búsqueda.
  */
 const gigsSearchBySellerId = async (searchQuery: string, active: boolean): Promise<ISearchResult> => {
-  const queryList: any[] = [
+  const queryList: ElasticsearchQuery[] = [
     {
       query_string: {
         fields: ['sellerId'],
@@ -54,7 +79,7 @@ const gigsSearch = async (
   max?: number
 ): Promise<ISearchResult> => {
   const { from, size, type } = paginate;
-  const queryList: any[] = [
+  const queryList: ElasticsearchQuery[] = [
     {
       query_string: {
         fields: ['username', 'title', 'description', 'basicDescription', 'basicTitle', 'categories', 'subCategories', 'tags'],
